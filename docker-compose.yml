@@ -1,0 +1,8 @@
+services:
+
+  external-services-mock:
+    image: wiremock/wiremock:3.3.1
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src/test/resources/external-services-mock/:/home/wiremock/mappings/:z
