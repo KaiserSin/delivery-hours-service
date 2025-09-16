@@ -1,8 +1,8 @@
 package deliveryhoursservice.models
 
 data class TimeEntryDto(
-    val open: Int? = null,
-    val close: Int? = null
+    val open: Int? = -1,
+    val close: Int? = -1
 )
 
 
