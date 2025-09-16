@@ -22,17 +22,17 @@ application {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-netty")
-    implementation("io.ktor:ktor-server-content-negotiation")
-    implementation("io.ktor:ktor-serialization-jackson")
-
     implementation("io.ktor:ktor-client-core")
-    implementation("io.ktor:ktor-client-java")
+    implementation("io.ktor:ktor-client-cio")
     implementation("io.ktor:ktor-client-content-negotiation")
     implementation("io.ktor:ktor-serialization-jackson")
-
+    implementation("io.ktor:ktor-client-logging")
+    implementation("io.ktor:ktor-client-java")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.+")
     implementation("ch.qos.logback:logback-classic:1.5.17")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-server-cio:3.1.1")
 
     testImplementation(platform("org.junit:junit-bom:5.12.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
