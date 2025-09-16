@@ -32,6 +32,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.17")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-cio:3.1.1")
 
     testImplementation(platform("org.junit:junit-bom:5.12.1"))

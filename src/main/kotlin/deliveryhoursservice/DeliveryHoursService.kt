@@ -4,6 +4,7 @@ import deliveryhoursservice.config.HttpClientProvider
 import io.ktor.server.application.*
 import io.ktor.server.engine.embeddedServer
 import deliveryhoursservice.plugins.configureSerialization
+import deliveryhoursservice.plugins.configureStatusPages
 import deliveryhoursservice.routing.configureRouting
 import io.ktor.server.cio.CIO
 
@@ -18,5 +19,6 @@ fun main() {
 
 fun Application.module() {
     configureSerialization()
+    configureStatusPages()
     configureRouting(HttpClientProvider.client)
 }

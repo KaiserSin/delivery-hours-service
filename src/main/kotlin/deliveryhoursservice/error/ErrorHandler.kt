@@ -33,6 +33,7 @@ class DefaultErrorHandler : ErrorHandler {
     }
 
     override fun handleException(t: Throwable): Nothing {
+        if (t is ApiException) throw t
         val error = when (t) {
             is HttpRequestTimeoutException,
             is ConnectTimeoutException,

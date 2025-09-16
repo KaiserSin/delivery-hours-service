@@ -21,30 +21,20 @@ class ExternalApiClient(
     private val errorHandler: ErrorHandler = DefaultErrorHandler()
 ) {
 
-    private val urlVenue = Url(VENUE_SERVICE_URL)
-    private val urlCourier = Url(COURIER_SERVICE_URL)
-
     suspend fun getDataVenueService(venueId: String): OpeningHoursDto =
         execute {
-            http.get {
+            http.get("$VENUE_SERVICE_URL/$venueId/opening-hours") {
                 expectSuccess = false
-                url {
-                    takeFrom(urlVenue)
-                    path(venueId, "opening-hours")
-                }
             }
         }
 
     suspend fun getDataCourierService(citySlug: String): OpeningHoursDto =
         execute {
-            http.get {
+            http.get("$COURIER_SERVICE_URL?city=$citySlug") {
                 expectSuccess = false
-                url {
-                    takeFrom(urlCourier)
-                }
-                parameter("city", citySlug)
             }
         }
+
 
     private suspend inline fun <reified T> execute(
         crossinline request: suspend () -> HttpResponse
