@@ -1,6 +1,5 @@
 package deliveryhoursservice.services
 
-import deliveryhoursservice.client.ExternalApiClient
 import deliveryhoursservice.models.DeliveryHoursResponseDto
 import deliveryhoursservice.models.OpeningHoursDto
 

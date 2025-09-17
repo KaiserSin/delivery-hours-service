@@ -20,6 +20,12 @@ fun Application.configureRouting(httpClient: HttpClient) {
                 ?: throw ApiException(ApiError.BadRequest("Missing 'city_slug'"))
             val venueId = call.request.queryParameters["venue_id"]
                 ?: throw ApiException(ApiError.BadRequest("Missing 'venue_id'"))
+            if (!citySlug.matches(Regex("^[a-zA-Z-]+$"))) {
+                throw ApiException(ApiError.BadRequest("city_slug must contain only letters and dashes"))
+            }
+            if (!venueId.matches(Regex("^[0-9]+$"))) {
+                throw ApiException(ApiError.BadRequest("venue_id must contain only digits"))
+            }
             val result = service.getDeliveryHours(citySlug, venueId)
             call.respond(result)
         }

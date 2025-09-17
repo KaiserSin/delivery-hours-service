@@ -17,6 +17,7 @@ fun Application.configureStatusPages() {
             val (code, detail) = when (val err = e.error) {
                 is ApiError.BadRequest       -> HttpStatusCode.BadRequest         to err.message
                 is ApiError.Unauthorized     -> HttpStatusCode.Unauthorized       to err.message
+                is ApiError.Validation      -> HttpStatusCode.BadRequest          to err.message
                 is ApiError.Forbidden        -> HttpStatusCode.Forbidden          to err.message
                 is ApiError.NotFound         -> HttpStatusCode.NotFound           to err.message
                 is ApiError.TooManyRequests  -> HttpStatusCode.TooManyRequests    to err.message
