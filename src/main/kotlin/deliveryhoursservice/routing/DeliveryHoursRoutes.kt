@@ -1,8 +1,8 @@
 package deliveryhoursservice.routing
 
-
-
 import deliveryhoursservice.client.ExternalApiClient
+import deliveryhoursservice.error.ApiError
+import deliveryhoursservice.error.ApiException
 import deliveryhoursservice.services.DeliveryHoursService
 import io.ktor.client.HttpClient
 import io.ktor.server.application.Application
@@ -16,8 +16,10 @@ fun Application.configureRouting(httpClient: HttpClient) {
 
     routing {
         get("/delivery-hours") {
-            val citySlug = call.request.queryParameters["city_slug"]!!
-            val venueId = call.request.queryParameters["venue_id"]!!
+            val citySlug = call.request.queryParameters["city_slug"]
+                ?: throw ApiException(ApiError.BadRequest("Missing 'city_slug'"))
+            val venueId = call.request.queryParameters["venue_id"]
+                ?: throw ApiException(ApiError.BadRequest("Missing 'venue_id'"))
             val result = service.getDeliveryHours(citySlug, venueId)
             call.respond(result)
         }

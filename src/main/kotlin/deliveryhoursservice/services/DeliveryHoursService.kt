@@ -1,32 +1,33 @@
 package deliveryhoursservice.services
 
-import deliveryhoursservice.client.ExternalApiClient
-import deliveryhoursservice.models.OpeningHoursDto
-import deliveryhoursservice.models.TimeEntryDto
-import kotlin.reflect.full.memberProperties
 
-private const val DAY_END = 24 * 60 * 60
+
+import deliveryhoursservice.client.ExternalApiClient
+import deliveryhoursservice.models.DeliveryHoursResponseDto
+import deliveryhoursservice.models.OpeningHoursDto
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+
 
 class DeliveryHoursService(
     private val apiClient: ExternalApiClient
 ) {
-    suspend fun getDeliveryHours(citySlug: String, venueId: String): OpeningHoursDto {
-
-
-        return apiClient.getDataVenueService(venueId)
+    suspend fun getDeliveryHours(citySlug: String, venueId: String): DeliveryHoursResponseDto {
+        val (venueData, courierData) = getBoth( venueId, citySlug)
+        return deliveryHoursFinder(venueData, courierData)
     }
 
-    private val weekDays: List<String> = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+    suspend fun getBoth(
+        venueId: String,
+        citySlug: String
+    ): Pair<OpeningHoursDto, OpeningHoursDto> = coroutineScope {
+        val venueDeferred   = async { apiClient.getDataVenueService(venueId) }
+        val courierDeferred = async { apiClient.getDataCourierService(citySlug) }
 
-    private data class Range(val s: Long, val e: Long) { val len get() = e - s }
+        val venueData = venueDeferred.await()
+        val courierData = courierDeferred.await()
 
-    private fun convertTime(week: OpeningHoursDto): List<Range> {
-        var answer = mutableListOf<Range>()
-        for (day in OpeningHoursDto::class.memberProperties){
-            print(day.get(week))
-        }
-        return answer
+        venueData to courierData
     }
-
 
 }

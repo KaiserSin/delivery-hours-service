@@ -5,25 +5,44 @@ import deliveryhoursservice.error.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.http.*
+import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.uri
 
 fun Application.configureStatusPages() {
+    val log = environment.log
+
     install(StatusPages) {
         exception<ApiException> { call, e ->
-            val (code, body) = when (e.error) {
-                is ApiError.BadRequest       -> HttpStatusCode.BadRequest        to mapOf("error" to e.error.message)
-                is ApiError.Unauthorized     -> HttpStatusCode.Unauthorized      to mapOf("error" to e.error.message)
-                is ApiError.Forbidden        -> HttpStatusCode.Forbidden         to mapOf("error" to e.error.message)
-                is ApiError.NotFound         -> HttpStatusCode.NotFound          to mapOf("error" to e.error.message)
-                is ApiError.TooManyRequests  -> HttpStatusCode.TooManyRequests   to mapOf("error" to e.error.message)
-                is ApiError.ServerError,
-                is ApiError.ExternalServiceError -> HttpStatusCode.BadGateway    to mapOf("error" to e.error.message)
-                is ApiError.Network          -> HttpStatusCode.GatewayTimeout    to mapOf("error" to e.error.message)
-                is ApiError.Unknown          -> HttpStatusCode.InternalServerError to mapOf("error" to e.error.message)
+            val (code, detail) = when (val err = e.error) {
+                is ApiError.BadRequest       -> HttpStatusCode.BadRequest         to err.message
+                is ApiError.Unauthorized     -> HttpStatusCode.Unauthorized       to err.message
+                is ApiError.Forbidden        -> HttpStatusCode.Forbidden          to err.message
+                is ApiError.NotFound         -> HttpStatusCode.NotFound           to err.message
+                is ApiError.TooManyRequests  -> HttpStatusCode.TooManyRequests    to err.message
+                is ApiError.ServerError      -> HttpStatusCode.InternalServerError to "Internal error"
+                is ApiError.ExternalServiceError -> HttpStatusCode.BadGateway     to "Upstream ${err.service} error ${err.status}"
+                is ApiError.Network          -> HttpStatusCode.GatewayTimeout     to "Network error"
+                is ApiError.Unknown          -> HttpStatusCode.InternalServerError to "Unknown error"
             }
-            call.respond(code, body)
+
+            if (code.value in 400..499) {
+                log.warn("Client error: ${e.error} for ${call.request.uri}")
+            } else {
+                log.error("Server error: ${e.error} for ${call.request.uri}", e)
+            }
+
+            call.respond(code, mapOf("error" to detail))
+        }
+
+        exception<MissingRequestParameterException> { call, e ->
+            log.warn("Missing request parameter at ${call.request.uri}: ${e.message}")
+            call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
+        }
+
+        exception<Throwable> { call, e ->
+            log.error("Unexpected error at ${call.request.uri}", e)
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Unexpected error"))
         }
     }
 }
-
-private fun errorBody(message: String) = mapOf("error" to message)

@@ -1,15 +1,21 @@
 package deliveryhoursservice.error
 
-sealed class ApiError(open val message: String) {
-    data class BadRequest(override val message: String) : ApiError(message)
-    data class Unauthorized(override val message: String) : ApiError(message)
-    data class Forbidden(override val message: String) : ApiError(message)
-    data class NotFound(override val message: String) : ApiError(message)
-    data class TooManyRequests(override val message: String) : ApiError(message)
-    data class ServerError(override val message: String) : ApiError(message)
-    data class Network(override val message: String) : ApiError(message)
-    data class Unknown(override val message: String) : ApiError(message)
-    data class ExternalServiceError(override val message: String) : ApiError(message)
+sealed interface ApiError {
+    val message: String
+    data class BadRequest(override val message: String): ApiError
+    data class Unauthorized(override val message: String): ApiError
+    data class Forbidden(override val message: String): ApiError
+    data class NotFound(override val message: String): ApiError
+    data class TooManyRequests(override val message: String): ApiError
+    data class ServerError(override val message: String): ApiError
+    data class Network(override val message: String): ApiError
+    data class ExternalServiceError(
+        val service: String,
+        val status: Int,
+        val body: String,
+        override val message: String = "Upstream $service responded $status"
+    ) : ApiError
+    data class Unknown(override val message: String): ApiError
 }
 
-class ApiException(val error: ApiError) : RuntimeException(error.message)
+class ApiException(val error: ApiError): RuntimeException(error.message)
