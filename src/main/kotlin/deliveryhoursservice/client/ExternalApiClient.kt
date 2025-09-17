@@ -9,12 +9,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.get
-import io.ktor.client.request.parameter
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.Url
 import io.ktor.http.isSuccess
-import io.ktor.http.path
-import io.ktor.http.takeFrom
 
 class ExternalApiClient(
     private val http: HttpClient,

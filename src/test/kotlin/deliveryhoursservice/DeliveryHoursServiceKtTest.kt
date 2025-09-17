@@ -1,12 +1,14 @@
 package deliveryhoursservice
 
+import deliveryhoursservice.config.OBJECT_MAPPER
+import deliveryhoursservice.services.DeliveryHoursService
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.serialization.jackson.JacksonConverter
-import io.ktor.server.application.call
+
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -32,7 +34,7 @@ class DeliveryHoursServiceKtTest {
                 }
 
             application {
-                deliveryHours(testClient)
+                DeliveryHoursService(testClient)
             }
 
             externalServices {
