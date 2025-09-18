@@ -22,8 +22,13 @@ fun Application.configureStatusPages() {
                 is ApiError.NotFound         -> HttpStatusCode.NotFound           to err.message
                 is ApiError.TooManyRequests  -> HttpStatusCode.TooManyRequests    to err.message
                 is ApiError.ServerError      -> HttpStatusCode.InternalServerError to "Internal error"
-                is ApiError.ExternalServiceError -> HttpStatusCode.BadGateway     to "Upstream ${err.service} error ${err.status}"
-                is ApiError.Network          -> HttpStatusCode.GatewayTimeout     to "Network error"
+                is ApiError.ExternalServiceError -> run {
+                    val upstreamCode = HttpStatusCode.fromValue(err.status)
+                    val detail = err.body.takeIf { it.isNotBlank() }
+                        ?: "Upstream ${err.service} error ${err.status}"
+                    upstreamCode to detail
+                }
+                is ApiError.Network          -> HttpStatusCode.GatewayTimeout     to err.message
                 is ApiError.Unknown          -> HttpStatusCode.InternalServerError to "Unknown error"
             }
 

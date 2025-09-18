@@ -1,6 +1,6 @@
 package deliveryhoursservice.routing
 
-import deliveryhoursservice.client.DeliveryHoursApiClient
+import deliveryhoursservice.client.DeliveryHoursExternalGateway
 import deliveryhoursservice.error.ApiError
 import deliveryhoursservice.error.ApiException
 import deliveryhoursservice.services.DeliveryHoursApplicationService
@@ -10,10 +10,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 
-fun Application.configureRouting(httpClient: HttpClient) {
-    val apiClient = DeliveryHoursApiClient(httpClient)
-    val service = DeliveryHoursApplicationService(apiClient)
-
+fun Application.configureRouting(service: DeliveryHoursApplicationService) {
     routing {
         get("/delivery-hours") {
             val citySlug = call.request.queryParameters["city_slug"]

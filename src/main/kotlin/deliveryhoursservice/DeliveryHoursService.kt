@@ -1,11 +1,16 @@
 package deliveryhoursservice
 
+import deliveryhoursservice.client.CourierApiClient
+import deliveryhoursservice.client.DeliveryHoursExternalGateway
+import deliveryhoursservice.client.VenueApiClient
 import deliveryhoursservice.config.HttpClientProvider
+
 import io.ktor.server.application.*
 import io.ktor.server.engine.embeddedServer
 import deliveryhoursservice.plugins.configureSerialization
 import deliveryhoursservice.plugins.configureStatusPages
 import deliveryhoursservice.routing.configureRouting
+import deliveryhoursservice.services.DeliveryHoursApplicationService
 import io.ktor.server.cio.CIO
 
 fun main() {
@@ -18,7 +23,14 @@ fun main() {
 }
 
 fun Application.module() {
+    val httpClient = HttpClientProvider.client
+    val venueClient = VenueApiClient(httpClient)
+    val courierClient = CourierApiClient(httpClient)
+    val gateway = DeliveryHoursExternalGateway(venueClient, courierClient)
+    val queryService = DeliveryHoursApplicationService(gateway)
+
+
     configureSerialization()
     configureStatusPages()
-    configureRouting(HttpClientProvider.client)
+    configureRouting(queryService)
 }

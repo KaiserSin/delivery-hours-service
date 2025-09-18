@@ -4,21 +4,19 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.endpoint
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.header
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
 import kotlin.random.Random
 
-
 object HttpClientProvider {
     val client = HttpClient(CIO) {
-
         install(ContentNegotiation) { jackson() }
 
         install(DefaultRequest) {
@@ -31,7 +29,7 @@ object HttpClientProvider {
 
         install(HttpTimeout) {
             connectTimeoutMillis = 1_000
-            socketTimeoutMillis  = 2_000
+            socketTimeoutMillis = 2_000
             requestTimeoutMillis = 2_500
         }
 
@@ -39,11 +37,11 @@ object HttpClientProvider {
             maxRetries = 2
             retryIf { request, response ->
                 val retryableStatus = setOf(
-                    HttpStatusCode.RequestTimeout,     // 408
-                    HttpStatusCode.TooManyRequests,    // 429
-                    HttpStatusCode.BadGateway,         // 502
-                    HttpStatusCode.ServiceUnavailable, // 503
-                    HttpStatusCode.GatewayTimeout      // 504
+                    HttpStatusCode.RequestTimeout,
+                    HttpStatusCode.TooManyRequests,
+                    HttpStatusCode.BadGateway,
+                    HttpStatusCode.ServiceUnavailable,
+                    HttpStatusCode.GatewayTimeout,
                 )
                 request.method in listOf(HttpMethod.Get, HttpMethod.Head) &&
                         response.status in retryableStatus
