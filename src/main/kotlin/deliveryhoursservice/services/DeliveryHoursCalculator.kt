@@ -34,14 +34,11 @@ private fun convertTime(week: OpeningHoursDto): List<Range> {
         OpeningHoursDto::saturday,
         OpeningHoursDto::sunday
     )
-
     var end = -1L
     var start = -1L
-
     for ((i, day) in dayAccessors.withIndex()) {
         val entries = day.get(week)
         val dayOffset = i * DAY_LENGTH_SECONDS
-
         for (time in entries) {
             when {
                 start == -1L && time.open != -1L -> {
