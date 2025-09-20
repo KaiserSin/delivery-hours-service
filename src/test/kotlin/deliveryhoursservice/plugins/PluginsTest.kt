@@ -80,6 +80,23 @@ class PluginsTest {
     }
 
     @Test
+    fun `configureStatusPages sanitizes server errors`() = testApplication {
+        application {
+            installStatusPagesForTest {
+                throw ApiException(ApiError.ServerError("sensitive detail"))
+            }
+        }
+        val client = createClient {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
+            }
+        }
+        val response = client.get("/error")
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+        assertEquals(mapOf("error" to "Internal error"), response.body())
+    }
+
+    @Test
     fun `configureStatusPages sanitizes external service errors`() = testApplication {
         application {
             configureSerialization()

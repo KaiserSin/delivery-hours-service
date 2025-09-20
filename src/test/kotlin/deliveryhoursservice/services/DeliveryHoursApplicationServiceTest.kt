@@ -17,7 +17,7 @@ import kotlinx.coroutines.test.runTest
 class DeliveryHoursApplicationServiceTest {
 
     @Test
-    fun fetchesBothSourcesInParallelAndReturnsDeliveryHours() {
+    fun `fetches venues and couriers in parallel`() {
         runTest {
             val gateway = mockk<DeliveryHoursExternalGateway>()
             val barrier =  CoroutineBarrier(2)
@@ -41,7 +41,7 @@ class DeliveryHoursApplicationServiceTest {
     }
 
     @Test
-    fun propagatesUpstreamExceptionFromVenue() {
+    fun `propagates venue exception`() {
         runTest {
             val gateway = mockk<DeliveryHoursExternalGateway>()
             val service = DeliveryHoursApplicationService(gateway)
@@ -60,7 +60,7 @@ class DeliveryHoursApplicationServiceTest {
     }
 
     @Test
-    fun propagatesUpstreamExceptionFromCourier() {
+    fun `propagates courier exception`() {
         runTest {
             val gateway = mockk<DeliveryHoursExternalGateway>()
             val service = DeliveryHoursApplicationService(gateway)
@@ -79,7 +79,7 @@ class DeliveryHoursApplicationServiceTest {
     }
 
     @Test
-    fun propagatesValidationErrorFromDto() {
+    fun `propagates venue validation error`() {
         runTest {
             val gateway = mockk<DeliveryHoursExternalGateway>()
             val service = DeliveryHoursApplicationService(gateway)
@@ -90,6 +90,22 @@ class DeliveryHoursApplicationServiceTest {
             coEvery { gateway.fetchVenueOpeningHours(any()) } returns invalidDto
             coEvery { gateway.fetchCourierDeliveryHours(any()) } returns OpeningHoursDto()
 
+            assertFailsWith<ApiException> {
+                service.getDeliveryHours("helsinki", "123")
+            }
+        }
+    }
+
+    @Test
+    fun `propagates courier validation error`() {
+        runTest {
+            val gateway = mockk<DeliveryHoursExternalGateway>()
+            val service = DeliveryHoursApplicationService(gateway)
+            val invalidDto = OpeningHoursDto(
+                tuesday = listOf(TimeEntryDto(open = 0, close = 0))
+            )
+            coEvery { gateway.fetchVenueOpeningHours(any()) } returns OpeningHoursDto()
+            coEvery { gateway.fetchCourierDeliveryHours(any()) } returns invalidDto
             assertFailsWith<ApiException> {
                 service.getDeliveryHours("helsinki", "123")
             }

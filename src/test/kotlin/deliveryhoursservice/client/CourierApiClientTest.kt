@@ -21,7 +21,7 @@ import java.net.SocketTimeoutException
 class CourierApiClientTest {
 
     @Test
-    fun fetchOpeningHoursReturnsDto() = runBlocking {
+    fun `returns dto on 200`() = runBlocking {
         val engine = MockEngine { request ->
             assertEquals(
                 "http://example.com/courier-service/delivery-hours?city=helsinki",
@@ -53,7 +53,7 @@ class CourierApiClientTest {
     }
 
     @Test
-    fun `fetchDeliveryHours throws ApiException on non 200`() = runBlocking {
+    fun `throws when upstream not found`() = runBlocking {
         val engine = MockEngine {
             respond(
                 """
@@ -79,7 +79,7 @@ class CourierApiClientTest {
     }
 
     @Test
-    fun `fetchDeliveryHours wraps transport exceptions into ApiError Network`() = runBlocking {
+    fun `wraps transport exceptions`() = runBlocking {
         val engine = MockEngine { throw SocketTimeoutException("timeout") }
         val httpClient = HttpClient(engine) {
             install(ContentNegotiation) { jackson() }
@@ -95,7 +95,7 @@ class CourierApiClientTest {
     }
 
     @Test
-    fun `fetchDeliveryHours maps 500 to external service error`() = runBlocking {
+    fun `maps internal error to external service`() = runBlocking {
         val engine = MockEngine {
             respond(
                 """

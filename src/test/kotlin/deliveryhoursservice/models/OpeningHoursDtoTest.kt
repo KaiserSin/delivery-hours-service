@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 class OpeningHoursDtoTest {
 
     @Test
-    fun acceptsValidOpenings() {
+    fun `accepts matching open and close`() {
         val dto = OpeningHoursDto(
             monday = listOf(
                 TimeEntryDto(open = 0),
@@ -27,7 +27,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun acceptsValidOpeningsInDifferentDays() {
+    fun `accepts overnight wrap`() {
         val dto = OpeningHoursDto(
             monday = listOf(TimeEntryDto(open = 0)),
             tuesday = listOf(TimeEntryDto(close = 22L * 3600))
@@ -37,7 +37,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun rejectsBothOpenAndCloseSet() {
+    fun `rejects open and close together`() {
         val dto = OpeningHoursDto(
             monday = listOf(TimeEntryDto(open = 0, close = 22L * 3600))
         )
@@ -50,7 +50,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun rejectsMissingOpenAndClose() {
+    fun `rejects missing open and close`() {
         val dto = OpeningHoursDto(
             monday = listOf(TimeEntryDto())
         )
@@ -65,7 +65,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun rejectsOpenOutOfRange() {
+    fun `rejects open out of range`() {
         val dto = OpeningHoursDto(
             monday = listOf(TimeEntryDto(open = 0), TimeEntryDto(close = 90_000))
         )
@@ -78,7 +78,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun rejectsCloseOutOfRange() {
+    fun `rejects close out of range`() {
         val dto = OpeningHoursDto(
             monday = listOf(TimeEntryDto(close = -2))
         )
@@ -91,7 +91,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun rejectsLeadingCloseWithoutMatchingOpen() {
+    fun `rejects leading close`() {
         val dto = OpeningHoursDto(
             monday = listOf(TimeEntryDto(close = 600))
         )
@@ -106,7 +106,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun rejectsConsecutiveOpenEntries() {
+    fun `rejects consecutive open entries`() {
         val dto = OpeningHoursDto(
             monday = listOf(
                 TimeEntryDto(open = 0),
@@ -122,7 +122,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun rejectsCloseOpenCloseCloseSequence() {
+    fun `rejects close open close close`() {
         val dto = OpeningHoursDto(
             monday = listOf(
                 TimeEntryDto(close = 600),
@@ -140,7 +140,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun rejectsTrailingOpenWithoutClose() {
+    fun `rejects trailing open`() {
         val dto = OpeningHoursDto(
             monday = listOf(TimeEntryDto(open = 1_000))
         )
@@ -153,7 +153,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun acceptsBoundaryValues() {
+    fun `accepts boundary values`() {
         val dto = OpeningHoursDto(
             monday = listOf(
                 TimeEntryDto(open = 0),
@@ -164,7 +164,7 @@ class OpeningHoursDtoTest {
     }
 
     @Test
-    fun timeEntryDefaultsToSentinel() {
+    fun `time entry defaults to sentinel`() {
         val entry = TimeEntryDto()
         assertEquals(-1, entry.open)
         assertEquals(-1, entry.close)
