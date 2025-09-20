@@ -39,6 +39,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(kotlin("test"))
     testImplementation("io.mockk:mockk:1.13.13")
+    testImplementation("io.ktor:ktor-client-mock")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.ktor:ktor-client-content-negotiation")
