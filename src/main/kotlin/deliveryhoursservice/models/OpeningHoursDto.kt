@@ -7,9 +7,8 @@ private const val DAY_SECONDS = 24 * 60 * 60L
 
 data class TimeEntryDto(
     val open: Long = -1,
-    val close: Long = -1
+    val close: Long = -1,
 )
-
 
 data class OpeningHoursDto(
     val monday: List<TimeEntryDto> = emptyList(),
@@ -18,19 +17,20 @@ data class OpeningHoursDto(
     val thursday: List<TimeEntryDto> = emptyList(),
     val friday: List<TimeEntryDto> = emptyList(),
     val saturday: List<TimeEntryDto> = emptyList(),
-    val sunday: List<TimeEntryDto> = emptyList()
+    val sunday: List<TimeEntryDto> = emptyList(),
 )
 
 fun OpeningHoursDto.validateOrThrow(): OpeningHoursDto {
-    val days = listOf(
-        "monday" to monday,
-        "tuesday" to tuesday,
-        "wednesday" to wednesday,
-        "thursday" to thursday,
-        "friday" to friday,
-        "saturday" to saturday,
-        "sunday" to sunday
-    )
+    val days =
+        listOf(
+            "monday" to monday,
+            "tuesday" to tuesday,
+            "wednesday" to wednesday,
+            "thursday" to thursday,
+            "friday" to friday,
+            "saturday" to saturday,
+            "sunday" to sunday,
+        )
 
     var expectingClose = false
     var pendingOpenDay: String? = null
@@ -44,19 +44,19 @@ fun OpeningHoursDto.validateOrThrow(): OpeningHoursDto {
             val hasClose = entry.close != -1L
             if (hasOpen == hasClose) {
                 throw ApiException(
-                    ApiError.Validation("[$dayName][$index]: exactly one of {open|close} must be set")
+                    ApiError.Validation("[$dayName][$index]: exactly one of {open|close} must be set"),
                 )
             }
             val value = if (hasOpen) entry.open else entry.close
             if (value !in 0..DAY_SECONDS) {
                 throw ApiException(
-                    ApiError.Validation("[$dayName][$index]: value $value is out of range 0..$DAY_SECONDS")
+                    ApiError.Validation("[$dayName][$index]: value $value is out of range 0..$DAY_SECONDS"),
                 )
             }
             if (hasOpen) {
                 if (expectingClose) {
                     throw ApiException(
-                        ApiError.Validation("[$dayName][$index]: expected close entry, got open")
+                        ApiError.Validation("[$dayName][$index]: expected close entry, got open"),
                     )
                 }
                 expectingClose = true
@@ -66,7 +66,7 @@ fun OpeningHoursDto.validateOrThrow(): OpeningHoursDto {
                 if (!expectingClose) {
                     if (leadingCloseDay != null) {
                         throw ApiException(
-                            ApiError.Validation("[$dayName][$index]: expected open entry, got close")
+                            ApiError.Validation("[$dayName][$index]: expected open entry, got close"),
                         )
                     }
                     leadingCloseDay = dayName
@@ -82,12 +82,12 @@ fun OpeningHoursDto.validateOrThrow(): OpeningHoursDto {
     if (expectingClose) {
         if (leadingCloseDay == null) {
             throw ApiException(
-                ApiError.Validation("[$pendingOpenDay][${pendingOpenIndex!!}]: open entry has no matching close in this week")
+                ApiError.Validation("[$pendingOpenDay][${pendingOpenIndex!!}]: open entry has no matching close in this week"),
             )
         }
     } else if (leadingCloseDay != null) {
         throw ApiException(
-            ApiError.Validation("[$leadingCloseDay][${leadingCloseIndex!!}]: close entry has no preceding open in this week")
+            ApiError.Validation("[$leadingCloseDay][${leadingCloseIndex!!}]: close entry has no preceding open in this week"),
         )
     }
     return this

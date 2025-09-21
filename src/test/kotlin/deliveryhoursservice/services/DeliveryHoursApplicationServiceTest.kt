@@ -9,18 +9,17 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlinx.coroutines.test.runTest
 
 class DeliveryHoursApplicationServiceTest {
-
     @Test
     fun `fetches venues and couriers in parallel`() {
         runTest {
             val gateway = mockk<DeliveryHoursExternalGateway>()
-            val barrier =  CoroutineBarrier(2)
+            val barrier = CoroutineBarrier(2)
             val venueDto = OpeningHoursDto(monday = slot(13, 0, 20, 0))
             val courierDto = OpeningHoursDto(monday = slot(14, 0, 21, 0))
 
@@ -50,9 +49,10 @@ class DeliveryHoursApplicationServiceTest {
             coEvery { gateway.fetchVenueOpeningHours("123") } throws failure
             coEvery { gateway.fetchCourierDeliveryHours(any()) } returns OpeningHoursDto()
 
-            val thrown = assertFailsWith<ApiException> {
-                service.getDeliveryHours("helsinki", "123")
-            }
+            val thrown =
+                assertFailsWith<ApiException> {
+                    service.getDeliveryHours("helsinki", "123")
+                }
 
             assertEquals(failure, thrown)
             coVerify(exactly = 1) { gateway.fetchVenueOpeningHours("123") }
@@ -69,9 +69,10 @@ class DeliveryHoursApplicationServiceTest {
             coEvery { gateway.fetchVenueOpeningHours(any()) } returns OpeningHoursDto()
             coEvery { gateway.fetchCourierDeliveryHours("helsinki") } throws failure
 
-            val thrown = assertFailsWith<ApiException> {
-                service.getDeliveryHours("helsinki", "123")
-            }
+            val thrown =
+                assertFailsWith<ApiException> {
+                    service.getDeliveryHours("helsinki", "123")
+                }
 
             assertEquals(failure, thrown)
             coVerify(exactly = 1) { gateway.fetchCourierDeliveryHours("helsinki") }
@@ -83,9 +84,10 @@ class DeliveryHoursApplicationServiceTest {
         runTest {
             val gateway = mockk<DeliveryHoursExternalGateway>()
             val service = DeliveryHoursApplicationService(gateway)
-            val invalidDto = OpeningHoursDto(
-                monday = listOf(TimeEntryDto(open = 0, close = 0))
-            )
+            val invalidDto =
+                OpeningHoursDto(
+                    monday = listOf(TimeEntryDto(open = 0, close = 0)),
+                )
 
             coEvery { gateway.fetchVenueOpeningHours(any()) } returns invalidDto
             coEvery { gateway.fetchCourierDeliveryHours(any()) } returns OpeningHoursDto()
@@ -101,9 +103,10 @@ class DeliveryHoursApplicationServiceTest {
         runTest {
             val gateway = mockk<DeliveryHoursExternalGateway>()
             val service = DeliveryHoursApplicationService(gateway)
-            val invalidDto = OpeningHoursDto(
-                tuesday = listOf(TimeEntryDto(open = 0, close = 0))
-            )
+            val invalidDto =
+                OpeningHoursDto(
+                    tuesday = listOf(TimeEntryDto(open = 0, close = 0)),
+                )
             coEvery { gateway.fetchVenueOpeningHours(any()) } returns OpeningHoursDto()
             coEvery { gateway.fetchCourierDeliveryHours(any()) } returns invalidDto
             assertFailsWith<ApiException> {
@@ -116,6 +119,7 @@ class DeliveryHoursApplicationServiceTest {
 class CoroutineBarrier(private val parties: Int) {
     private val counter = java.util.concurrent.atomic.AtomicInteger(0)
     private val gate = CompletableDeferred<Unit>()
+
     suspend fun await() {
         if (counter.incrementAndGet() == parties) gate.complete(Unit)
         gate.await()

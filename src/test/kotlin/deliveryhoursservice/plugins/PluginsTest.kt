@@ -20,113 +20,124 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PluginsTest {
-
     @Test
-    fun `configureSerialization registers jackson converter`() = testApplication {
-        application {
-            configureSerialization()
-            routing {
-                get("/ping") {
-                    call.respond(mapOf("ok" to true))
+    fun `configureSerialization registers jackson converter`() =
+        testApplication {
+            application {
+                configureSerialization()
+                routing {
+                    get("/ping") {
+                        call.respond(mapOf("ok" to true))
+                    }
                 }
-            }}
-        val client = createClient {
-            install(ContentNegotiation) {
-                register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
             }
+            val client =
+                createClient {
+                    install(ContentNegotiation) {
+                        register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
+                    }
+                }
+            val response = client.get("/ping")
+            assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
+            assertEquals(mapOf("ok" to true), response.body())
         }
-        val response = client.get("/ping")
-        assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
-        assertEquals(mapOf("ok" to true), response.body())
-    }
 
     @Test
-    fun `configureStatusPages maps ApiException to http response`() = testApplication {
-        application { installStatusPagesForTest { throw ApiException(ApiError.BadRequest("bad input")) } }
-        val client = createClient {
-            install(ContentNegotiation) {
-                register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
-            }
+    fun `configureStatusPages maps ApiException to http response`() =
+        testApplication {
+            application { installStatusPagesForTest { throw ApiException(ApiError.BadRequest("bad input")) } }
+            val client =
+                createClient {
+                    install(ContentNegotiation) {
+                        register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
+                    }
+                }
+            val response = client.get("/error")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals(mapOf("error" to "bad input"), response.body())
         }
-        val response = client.get("/error")
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertEquals(mapOf("error" to "bad input"), response.body())
-    }
 
     @Test
-    fun `configureStatusPages maps MissingRequestParameterException to 400`() = testApplication {
-        application { installStatusPagesForTest { throw MissingRequestParameterException("foo") } }
-        val client = createClient {
-            install(ContentNegotiation) {
-                register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
-            }
+    fun `configureStatusPages maps MissingRequestParameterException to 400`() =
+        testApplication {
+            application { installStatusPagesForTest { throw MissingRequestParameterException("foo") } }
+            val client =
+                createClient {
+                    install(ContentNegotiation) {
+                        register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
+                    }
+                }
+            val response = client.get("/error")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals(mapOf("error" to "Request parameter foo is missing"), response.body())
         }
-        val response = client.get("/error")
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        assertEquals(mapOf("error" to "Request parameter foo is missing"), response.body())
-    }
 
     @Test
-    fun `configureStatusPages maps Throwable to 500`() = testApplication {
-        application { installStatusPagesForTest { throw IllegalStateException("error") } }
-        val client = createClient {
-            install(ContentNegotiation) {
-                register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
-            }
+    fun `configureStatusPages maps Throwable to 500`() =
+        testApplication {
+            application { installStatusPagesForTest { throw IllegalStateException("error") } }
+            val client =
+                createClient {
+                    install(ContentNegotiation) {
+                        register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
+                    }
+                }
+            val response = client.get("/error")
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals(mapOf("error" to "Unexpected error"), response.body())
         }
-        val response = client.get("/error")
-        assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(mapOf("error" to "Unexpected error"), response.body())
-    }
 
     @Test
-    fun `configureStatusPages sanitizes server errors`() = testApplication {
-        application {
-            installStatusPagesForTest {
-                throw ApiException(ApiError.ServerError("sensitive detail"))
+    fun `configureStatusPages sanitizes server errors`() =
+        testApplication {
+            application {
+                installStatusPagesForTest {
+                    throw ApiException(ApiError.ServerError("sensitive detail"))
+                }
             }
+            val client =
+                createClient {
+                    install(ContentNegotiation) {
+                        register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
+                    }
+                }
+            val response = client.get("/error")
+            assertEquals(HttpStatusCode.InternalServerError, response.status)
+            assertEquals(mapOf("error" to "Internal error"), response.body())
         }
-        val client = createClient {
-            install(ContentNegotiation) {
-                register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
-            }
-        }
-        val response = client.get("/error")
-        assertEquals(HttpStatusCode.InternalServerError, response.status)
-        assertEquals(mapOf("error" to "Internal error"), response.body())
-    }
 
     @Test
-    fun `configureStatusPages sanitizes external service errors`() = testApplication {
-        application {
-            configureSerialization()
-            configureStatusPages()
-            routing {
-                get("/external") {
-                    throw ApiException(
-                        ApiError.ExternalServiceError(
-                            service = "Courier Service",
-                            status = 503,
-                            body = "sensitive upstream body"
+    fun `configureStatusPages sanitizes external service errors`() =
+        testApplication {
+            application {
+                configureSerialization()
+                configureStatusPages()
+                routing {
+                    get("/external") {
+                        throw ApiException(
+                            ApiError.ExternalServiceError(
+                                service = "Courier Service",
+                                status = 503,
+                                body = "sensitive upstream body",
+                            ),
                         )
-                    )
+                    }
                 }
             }
+            val client =
+                createClient {
+                    install(ContentNegotiation) {
+                        register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
+                    }
+                }
+            val response = client.get("/external")
+            assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
+            assertEquals(
+                mapOf("error" to "Upstream Courier Service responded 503"),
+                response.body(),
+            )
         }
-        val client = createClient {
-            install(ContentNegotiation) {
-                register(ContentType.Application.Json, JacksonConverter(AppConfig.objectMapper.copy()))
-            }
-        }
-        val response = client.get("/external")
-        assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
-        assertEquals(
-            mapOf("error" to "Upstream Courier Service responded 503"),
-            response.body()
-        )
-    }
 }
-
 
 private fun Application.installStatusPagesForTest(block: suspend () -> Unit) {
     configureSerialization()

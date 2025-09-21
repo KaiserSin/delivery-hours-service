@@ -16,54 +16,56 @@ import io.ktor.serialization.jackson.jackson
 import kotlin.random.Random
 
 object HttpClientProvider {
-    val client = HttpClient(CIO) {
-        install(ContentNegotiation) { jackson() }
+    val client =
+        HttpClient(CIO) {
+            install(ContentNegotiation) { jackson() }
 
-        install(DefaultRequest) {
-            header("Accept", "application/json")
-        }
+            install(DefaultRequest) {
+                header("Accept", "application/json")
+            }
 
-        install(Logging) {
-            level = LogLevel.INFO
-        }
+            install(Logging) {
+                level = LogLevel.INFO
+            }
 
-        install(HttpTimeout) {
-            connectTimeoutMillis = 1_000
-            socketTimeoutMillis = 2_000
-            requestTimeoutMillis = 2_500
-        }
+            install(HttpTimeout) {
+                connectTimeoutMillis = 1_000
+                socketTimeoutMillis = 2_000
+                requestTimeoutMillis = 2_500
+            }
 
-        install(HttpRequestRetry) {
-            maxRetries = 2
-            retryIf { request, response ->
-                val retryableStatus = setOf(
-                    HttpStatusCode.RequestTimeout,
-                    HttpStatusCode.TooManyRequests,
-                    HttpStatusCode.BadGateway,
-                    HttpStatusCode.ServiceUnavailable,
-                    HttpStatusCode.GatewayTimeout,
-                )
-                request.method in listOf(HttpMethod.Get, HttpMethod.Head) &&
+            install(HttpRequestRetry) {
+                maxRetries = 2
+                retryIf { request, response ->
+                    val retryableStatus =
+                        setOf(
+                            HttpStatusCode.RequestTimeout,
+                            HttpStatusCode.TooManyRequests,
+                            HttpStatusCode.BadGateway,
+                            HttpStatusCode.ServiceUnavailable,
+                            HttpStatusCode.GatewayTimeout,
+                        )
+                    request.method in listOf(HttpMethod.Get, HttpMethod.Head) &&
                         response.status in retryableStatus
-            }
-            retryOnExceptionIf { request, _ ->
-                request.method in listOf(HttpMethod.Get, HttpMethod.Head)
+                }
+                retryOnExceptionIf { request, _ ->
+                    request.method in listOf(HttpMethod.Get, HttpMethod.Head)
+                }
+
+                delayMillis { attempt ->
+                    val base = 100L shl attempt.coerceAtMost(4)
+                    val jitter = Random.nextLong(0, base / 5 + 1)
+                    (base + jitter).coerceAtMost(1_500L)
+                }
             }
 
-            delayMillis { attempt ->
-                val base = 100L shl attempt.coerceAtMost(4)
-                val jitter = Random.nextLong(0, base / 5 + 1)
-                (base + jitter).coerceAtMost(1_500L)
+            engine {
+                maxConnectionsCount = 1000
+                endpoint {
+                    connectAttempts = 1
+                    keepAliveTime = 5_000
+                    pipelineMaxSize = 20
+                }
             }
         }
-
-        engine {
-            maxConnectionsCount = 1000
-            endpoint {
-                connectAttempts = 1
-                keepAliveTime = 5_000
-                pipelineMaxSize = 20
-            }
-        }
-    }
 }

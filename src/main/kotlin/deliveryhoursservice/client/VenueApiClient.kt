@@ -14,18 +14,17 @@ import io.ktor.http.isSuccess
 class VenueApiClient(
     private val http: HttpClient,
     private val errorHandler: ErrorHandler = DefaultErrorHandler("Venue Service"),
-    private val baseUrl: String = AppConfig.venueServiceUrl
+    private val baseUrl: String = AppConfig.venueServiceUrl,
 ) {
     suspend fun fetchOpeningHours(venueId: String): OpeningHoursDto =
         executeRequest {
             http.get("$baseUrl/$venueId/opening-hours") { expectSuccess = false }
         }
 
-    private suspend inline fun <reified T> executeRequest(
-        crossinline block: suspend () -> HttpResponse,
-    ): T = runCatching { block() }
-        .fold(
-            onSuccess = { if (it.status.isSuccess()) it.body() else errorHandler.handleResponse(it) },
-            onFailure = { throw errorHandler.handleException(it) }
-        )
+    private suspend inline fun <reified T> executeRequest(crossinline block: suspend () -> HttpResponse): T =
+        runCatching { block() }
+            .fold(
+                onSuccess = { if (it.status.isSuccess()) it.body() else errorHandler.handleResponse(it) },
+                onFailure = { throw errorHandler.handleException(it) },
+            )
 }

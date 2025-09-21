@@ -13,113 +13,129 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import kotlinx.coroutines.runBlocking
-import kotlin.test.assertTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-
-
+import kotlin.test.assertTrue
 
 class VenueApiClientTest {
     @Test
-    fun `returns dto on 200`() = runBlocking {
-        val engine = MockEngine { request ->
-            assertEquals(
-                "http://example.com/venue-service/venues/123/opening-hours",
-                request.url.toString()
-            )
-            respond(
-                """
-                    {
-                      "monday": [
-                        { "open": 0 },
-                        { "close": 3600 }
-                      ]
-                    }
-                """.trimIndent(),
-                HttpStatusCode.OK,
-                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            )
+    fun `returns dto on 200`() =
+        runBlocking {
+            val engine =
+                MockEngine { request ->
+                    assertEquals(
+                        "http://example.com/venue-service/venues/123/opening-hours",
+                        request.url.toString(),
+                    )
+                    respond(
+                        """
+                        {
+                          "monday": [
+                            { "open": 0 },
+                            { "close": 3600 }
+                          ]
+                        }
+                        """.trimIndent(),
+                        HttpStatusCode.OK,
+                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
+            val httpClient =
+                HttpClient(engine) {
+                    install(ContentNegotiation) { jackson() }
+                }
+            val client =
+                VenueApiClient(
+                    http = httpClient,
+                    baseUrl = "http://example.com/venue-service/venues",
+                )
+            val dto = client.fetchOpeningHours("123")
+            assertEquals(0, dto.monday[0].open)
+            assertEquals(3600, dto.monday[1].close)
         }
-        val httpClient = HttpClient(engine) {
-            install(ContentNegotiation) { jackson() }
-        }
-        val client = VenueApiClient(
-            http = httpClient,
-            baseUrl = "http://example.com/venue-service/venues"
-        )
-        val dto = client.fetchOpeningHours("123")
-        assertEquals(0, dto.monday[0].open)
-        assertEquals(3600, dto.monday[1].close)
-    }
 
     @Test
-    fun `throws when upstream not found`() = runBlocking {
-        val engine = MockEngine { request ->
-            respond(
-                """
-                    { "error": "not found" }
-                """.trimIndent(),
-                HttpStatusCode.NotFound,
-                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            )
-        }
+    fun `throws when upstream not found`() =
+        runBlocking {
+            val engine =
+                MockEngine { request ->
+                    respond(
+                        """
+                        { "error": "not found" }
+                        """.trimIndent(),
+                        HttpStatusCode.NotFound,
+                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
 
-        val httpClient = HttpClient(engine) {
-            install(ContentNegotiation) { jackson() }
+            val httpClient =
+                HttpClient(engine) {
+                    install(ContentNegotiation) { jackson() }
+                }
+            val client =
+                VenueApiClient(
+                    http = httpClient,
+                    baseUrl = "http://example.com/venue-service/venues",
+                )
+            val error =
+                assertFailsWith<ApiException> {
+                    client.fetchOpeningHours("unknown")
+                }
+            assertTrue(error.error is ApiError.ExternalServiceError)
+            assertEquals("Venue Service", error.error.service)
+            assertEquals(HttpStatusCode.NotFound.value, error.error.status)
         }
-        val client = VenueApiClient(
-            http = httpClient,
-            baseUrl = "http://example.com/venue-service/venues"
-        )
-        val error = assertFailsWith<ApiException> {
-            client.fetchOpeningHours("unknown")
-        }
-        assertTrue(error.error is ApiError.ExternalServiceError)
-        assertEquals("Venue Service", error.error.service)
-        assertEquals(HttpStatusCode.NotFound.value, error.error.status)
-    }
-
-    @Test
-    fun `wraps transport exceptions`() = runBlocking {
-        val engine = MockEngine { throw SocketTimeoutException("error") }
-        val httpClient = HttpClient(engine) {
-            install(ContentNegotiation) { jackson() }
-        }
-        val client = VenueApiClient(
-            http = httpClient,
-            baseUrl = "http://example.com/venue-service/venues"
-        )
-        val error = assertFailsWith<ApiException> {
-            client.fetchOpeningHours("123")
-        }
-        assertTrue(error.error is ApiError.Network)
-    }
 
     @Test
-    fun `maps internal error to external service`() = runBlocking {
-        val engine = MockEngine {
-            respond(
-                """
-                { "error": "upstream failure" }
-                """.trimIndent(),
-                HttpStatusCode.InternalServerError,
-                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            )
+    fun `wraps transport exceptions`() =
+        runBlocking {
+            val engine = MockEngine { throw SocketTimeoutException("error") }
+            val httpClient =
+                HttpClient(engine) {
+                    install(ContentNegotiation) { jackson() }
+                }
+            val client =
+                VenueApiClient(
+                    http = httpClient,
+                    baseUrl = "http://example.com/venue-service/venues",
+                )
+            val error =
+                assertFailsWith<ApiException> {
+                    client.fetchOpeningHours("123")
+                }
+            assertTrue(error.error is ApiError.Network)
         }
-        val httpClient = HttpClient(engine) {
-            install(ContentNegotiation) { jackson() }
+
+    @Test
+    fun `maps internal error to external service`() =
+        runBlocking {
+            val engine =
+                MockEngine {
+                    respond(
+                        """
+                        { "error": "upstream failure" }
+                        """.trimIndent(),
+                        HttpStatusCode.InternalServerError,
+                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                    )
+                }
+            val httpClient =
+                HttpClient(engine) {
+                    install(ContentNegotiation) { jackson() }
+                }
+            val client =
+                VenueApiClient(
+                    http = httpClient,
+                    baseUrl = "http://example.com/venue-service/venues",
+                )
+            val error =
+                assertFailsWith<ApiException> {
+                    client.fetchOpeningHours("123")
+                }
+            assertTrue(error.error is ApiError.ExternalServiceError)
+            assertEquals("Venue Service", error.error.service)
+            assertEquals(500, error.error.status)
+            assertTrue(error.error.body.contains("upstream failure"))
         }
-        val client = VenueApiClient(
-            http = httpClient,
-            baseUrl = "http://example.com/venue-service/venues"
-        )
-        val error = assertFailsWith<ApiException> {
-            client.fetchOpeningHours("123")
-        }
-        assertTrue(error.error is ApiError.ExternalServiceError)
-        assertEquals("Venue Service", error.error.service)
-        assertEquals(500, error.error.status)
-        assertTrue(error.error.body.contains("upstream failure"))
-    }
 }

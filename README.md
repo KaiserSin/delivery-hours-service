@@ -107,4 +107,31 @@ There's a GitHub workflow (ci.yml) which runs linter for the whole codebase and 
 Make sure your implementation passes the CI before submitting your solution.
 
 ## Notes from the applicant
-Please write here if you want to explain the choices you made on the way :).
+
+First of all, I want to say thank you for offering to do this test assignment for me. It was an interesting challenge. 
+A few words about my solution.
+
+### Edge case: crossing midnight with a 06:00 cut
+
+**Day boundary rule.** For display purposes, a “day” ends at **06:00**, not at 00:00.
+
+1. **Evening→early-morning stays in the start day.**  
+   Example: `21:00–05:00` is displayed in the same day that has `21:00`.
+2. **Any interval crossing 06:00 is split exactly at 06:00.**  
+   Example: `21:00–08:00` → `21:00–06:00` (start day) and `06:00–08:00` (next day).
+
+**Minimum slot length (paired across 06:00).** After splitting at 06:00, a per-day segment shorter than **30 minutes** may appear. It is **kept** if it is the continuation of the **same logical overnight interval** and the **combined duration** of the two paired parts (before 06:00 + after 06:00) is **≥ 30 minutes**. Otherwise, sub-30-minute segments are **discarded** and the day is **`Closed (less than 30 mins)`** if nothing valid remains.
+
+#### Crossing 06:00 cut
+
+| Raw hours     | Display with 06:00 cut                                   | Notes                                                                 |
+|---------------|---|---|
+| `21:00–05:00` | `21:00–05:00` (same day)                                 | Ends before 06:00 → no split                                          |
+| `21:00–08:00` | `21:00–06:00` (day D); `06:00–08:00` (day D+1)           | Split exactly at 06:00; both parts kept                               |
+| `23:30–06:10` | `23:30–06:00` (day D); `06:00–06:10` (day D+1)           | Post-cut part = 10 min < 30, **but** paired total ≥ 30 → **kept**     |
+| `05:50–06:10` | ~~`05:50–06:00`~~; ~~`06:00–06:10`~~                     | Total = 20 min < 30 and no longer span → **discarded**                |
+| `05:45–06:15` | `05:45–06:00` (day D); `06:00–06:15` (day D+1)           | Paired total = 30 min → **both kept**                                 |
+
+### Final note
+
+Everything else works as intended: all commands, validations, and edge-case handling are implemented as specified. Thank you for the opportunity to complete this assignment and for the chance to be considered.

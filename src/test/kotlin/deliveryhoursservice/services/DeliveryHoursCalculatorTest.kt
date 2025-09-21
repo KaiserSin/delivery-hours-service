@@ -5,7 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DeliveryHoursCalculatorTest {
-
     @Test
     fun `intersects distinct monday slots`() {
         val venue = OpeningHoursDto(monday = slot(13, 0, 20, 0))
@@ -40,12 +39,14 @@ class DeliveryHoursCalculatorTest {
 
     @Test
     fun `preserves slot order and formatting`() {
-        val venue = OpeningHoursDto(
-            monday = slot(8, 0, 12, 0)+slot(14, 30, 18, 0),
-        )
-        val courier = OpeningHoursDto(
-            monday = slot(7, 0, 13, 0)+slot(14, 0, 20, 0),
-        )
+        val venue =
+            OpeningHoursDto(
+                monday = slot(8, 0, 12, 0) + slot(14, 30, 18, 0),
+            )
+        val courier =
+            OpeningHoursDto(
+                monday = slot(7, 0, 13, 0) + slot(14, 0, 20, 0),
+            )
         val response = calculateDeliveryHours(venue, courier)
         assertEquals(expectWeek("Monday" to "08-12, 14:30-18"), response.delivery_hours)
     }
@@ -65,20 +66,22 @@ class DeliveryHoursCalculatorTest {
         val response = calculateDeliveryHours(venue, courier)
         assertEquals(
             expectWeek("Monday" to "05-06", "Tuesday" to "06-08"),
-            response.delivery_hours
+            response.delivery_hours,
         )
     }
 
     @Test
     fun `wraps sunday slot into next week`() {
-        val venue = OpeningHoursDto(
-            sunday = listOf(openEntry(21)),
-            monday = listOf(closeEntry(6))
-        )
-        val courier = OpeningHoursDto(
-            sunday = listOf(openEntry(20)),
-            monday = listOf(closeEntry(7))
-        )
+        val venue =
+            OpeningHoursDto(
+                sunday = listOf(openEntry(21)),
+                monday = listOf(closeEntry(6)),
+            )
+        val courier =
+            OpeningHoursDto(
+                sunday = listOf(openEntry(20)),
+                monday = listOf(closeEntry(7)),
+            )
         val response = calculateDeliveryHours(venue, courier)
         assertEquals(expectWeek("Sunday" to "21-06"), response.delivery_hours)
     }

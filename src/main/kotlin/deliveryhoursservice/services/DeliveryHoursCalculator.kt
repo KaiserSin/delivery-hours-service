@@ -3,13 +3,12 @@ package deliveryhoursservice.services
 import deliveryhoursservice.models.DeliveryHoursResponseDto
 import deliveryhoursservice.models.OpeningHoursDto
 
-
 private const val DAY_LENGTH_SECONDS = 24 * 60 * 60L
-private const val WEEK_LENGTH_SECONDS = 24 * 60 * 60 * 7L
+private const val WEEK_LENGTH_SECONDS = DAY_LENGTH_SECONDS * 7
 private const val MIN_DELIVERY_SLOT_SECONDS = 30 * 60L
-private const val DAY_BOUNDARY_AT_6_AM_SECONDS = 6L  * 60 * 60
-private val WEEKDAY_NAMES = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-
+private const val DAY_BOUNDARY_AT_6_AM_SECONDS = 6L * 60 * 60
+private val WEEKDAY_NAMES =
+    listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 fun calculateDeliveryHours(
     venueTimeDto: OpeningHoursDto,
@@ -21,19 +20,26 @@ fun calculateDeliveryHours(
     return rangesToDtoCutAt6am(resultTime)
 }
 
-private data class Range(val startSeconds: Long, val endSeconds: Long) { val len get() = endSeconds - startSeconds }
+private data class Range(
+    val startSeconds: Long,
+    val endSeconds: Long,
+) {
+    val len: Long
+        get() = endSeconds - startSeconds
+}
 
 private fun convertTime(week: OpeningHoursDto): List<Range> {
     val ranges = mutableListOf<Range>()
-    val dayAccessors = listOf(
-        OpeningHoursDto::monday,
-        OpeningHoursDto::tuesday,
-        OpeningHoursDto::wednesday,
-        OpeningHoursDto::thursday,
-        OpeningHoursDto::friday,
-        OpeningHoursDto::saturday,
-        OpeningHoursDto::sunday
-    )
+    val dayAccessors =
+        listOf(
+            OpeningHoursDto::monday,
+            OpeningHoursDto::tuesday,
+            OpeningHoursDto::wednesday,
+            OpeningHoursDto::thursday,
+            OpeningHoursDto::friday,
+            OpeningHoursDto::saturday,
+            OpeningHoursDto::sunday,
+        )
     var end = -1L
     var start = -1L
     for ((i, day) in dayAccessors.withIndex()) {
@@ -44,16 +50,19 @@ private fun convertTime(week: OpeningHoursDto): List<Range> {
                 start == -1L && time.open != -1L -> {
                     start = time.open + dayOffset
                 }
+
                 start != -1L && time.close != -1L -> {
                     ranges.add(Range(start, time.close + dayOffset))
                     start = -1L
                 }
+
                 end == -1L && time.open == -1L && time.close != -1L -> {
-                    end = time.close + i  * DAY_LENGTH_SECONDS + WEEK_LENGTH_SECONDS
+                    end = time.close + i * DAY_LENGTH_SECONDS + WEEK_LENGTH_SECONDS
                 }
+
                 else -> {
                     throw IllegalStateException(
-                        "Bad sequence on ${day.name}: time=$time start=$start end=$end"
+                        "Bad sequence on ${day.name}: time=$time start=$start end=$end",
                     )
                 }
             }
@@ -65,7 +74,10 @@ private fun convertTime(week: OpeningHoursDto): List<Range> {
     return ranges
 }
 
-private fun intersectRanges(a: List<Range>, b: List<Range>): List<Range> {
+private fun intersectRanges(
+    a: List<Range>,
+    b: List<Range>,
+): List<Range> {
     val result = mutableListOf<Range>()
     var i = 0
     var j = 0
@@ -108,18 +120,19 @@ private fun rangesToDtoCutAt6am(ranges: List<Range>): DeliveryHoursResponseDto {
             s = endHere
         }
     }
-    val final = perDay.mapValues { (_, slots) ->
-        if (slots.isEmpty()) "Closed" else slots.joinToString(", ")
-    }
+    val final =
+        perDay.mapValues { (_, slots) ->
+            if (slots.isEmpty()) "Closed" else slots.joinToString(", ")
+        }
     return DeliveryHoursResponseDto(final)
 }
 
-private fun displayDayIndex(t: Long): Int =
-    (((t - DAY_BOUNDARY_AT_6_AM_SECONDS) floorDiv DAY_LENGTH_SECONDS).toInt() % 7 + 7) % 7
-
+private fun displayDayIndex(t: Long): Int = (((t - DAY_BOUNDARY_AT_6_AM_SECONDS) floorDiv DAY_LENGTH_SECONDS).toInt() % 7 + 7) % 7
 
 private fun nextCut6amAfter(t: Long): Long {
-    val dayStartAt6 = ((t - DAY_BOUNDARY_AT_6_AM_SECONDS) floorDiv DAY_LENGTH_SECONDS) * DAY_LENGTH_SECONDS + DAY_BOUNDARY_AT_6_AM_SECONDS
+    val dayStartAt6 =
+        ((t - DAY_BOUNDARY_AT_6_AM_SECONDS) floorDiv DAY_LENGTH_SECONDS) * DAY_LENGTH_SECONDS +
+            DAY_BOUNDARY_AT_6_AM_SECONDS
     return dayStartAt6 + DAY_LENGTH_SECONDS
 }
 
@@ -132,4 +145,3 @@ private fun formatClock(secondsInDay: Long): String {
     val m = (totalMin % 60).toInt()
     return if (m == 0) "%02d".format(h) else "%02d:%02d".format(h, m)
 }
-

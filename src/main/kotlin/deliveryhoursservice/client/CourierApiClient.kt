@@ -14,9 +14,8 @@ import io.ktor.http.isSuccess
 class CourierApiClient(
     private val http: HttpClient,
     private val errorHandler: ErrorHandler = DefaultErrorHandler("Courier Service"),
-    private val baseUrl: String = AppConfig.courierServiceUrl
+    private val baseUrl: String = AppConfig.courierServiceUrl,
 ) {
-
     suspend fun fetchDeliveryHours(citySlug: String): OpeningHoursDto =
         executeRequest {
             http.get("$baseUrl?city=$citySlug") {
@@ -24,16 +23,15 @@ class CourierApiClient(
             }
         }
 
-    private suspend inline fun <reified T> executeRequest(
-        crossinline block: suspend () -> HttpResponse,
-    ): T = try {
-        val response = block()
-        if (response.status.isSuccess()) {
-            response.body()
-        } else {
-            errorHandler.handleResponse(response)
+    private suspend inline fun <reified T> executeRequest(crossinline block: suspend () -> HttpResponse): T =
+        try {
+            val response = block()
+            if (response.status.isSuccess()) {
+                response.body()
+            } else {
+                errorHandler.handleResponse(response)
+            }
+        } catch (t: Throwable) {
+            errorHandler.handleException(t)
         }
-    } catch (t: Throwable) {
-        errorHandler.handleException(t)
-    }
 }

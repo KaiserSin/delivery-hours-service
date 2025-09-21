@@ -16,10 +16,11 @@ object AppConfig {
     val courierServiceUrl: String =
         getEnv("COURIER_SERVICE_URL") ?: "$EXTERNAL_SERVICES_DEFAULT_HOST/courier-service/delivery-hours"
 
-    val objectMapper = jsonMapper {
-        propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-        enable(SerializationFeature.INDENT_OUTPUT)
-        disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        addModule(kotlinModule())
-    }
+    val objectMapper =
+        jsonMapper {
+            propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            enable(SerializationFeature.INDENT_OUTPUT)
+            disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            addModule(kotlinModule())
+        }
 }

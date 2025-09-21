@@ -46,6 +46,7 @@ dependencies {
 }
 
 dockerCompose {
+    environment.put("SERVICES_HOST", "localhost")
     isRequiredBy(tasks.run)
     captureContainersOutput.set(false)
     stopContainers.set(false)
