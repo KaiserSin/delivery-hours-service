@@ -4,7 +4,6 @@ import deliveryhoursservice.error.ApiError
 import deliveryhoursservice.error.ApiException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.MissingRequestParameterException
 import io.ktor.server.plugins.statuspages.StatusPages
