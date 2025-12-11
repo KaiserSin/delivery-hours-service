@@ -1,7 +1,6 @@
 package deliveryhoursservice.integration
 
 import deliveryhoursservice.config.AppConfig
-import deliveryhoursservice.config.HttpClientProvider
 import deliveryhoursservice.models.DeliveryHoursResponseDto
 import deliveryhoursservice.module
 import io.ktor.client.HttpClient
@@ -18,13 +17,10 @@ import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import io.mockk.every
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class DeliveryHoursServiceIntegrationTest {
+class DeliveryHoursComponentTest {
     private val expectedDeliveryHours =
         mapOf(
             "Monday" to "14-20",
@@ -69,13 +65,10 @@ class DeliveryHoursServiceIntegrationTest {
             HttpClient(stubbedGatewayEngine()) {
                 install(ContentNegotiation) { jackson() }
             }
-        mockkObject(HttpClientProvider)
         try {
-            every { HttpClientProvider.client } returns httpClient
-            application { module() }
+            application { module(httpClient = httpClient) }
             block()
         } finally {
-            unmockkObject(HttpClientProvider)
             httpClient.close()
         }
     }

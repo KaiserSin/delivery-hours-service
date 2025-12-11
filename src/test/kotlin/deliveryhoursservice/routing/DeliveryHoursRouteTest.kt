@@ -22,7 +22,7 @@ import kotlin.test.assertEquals
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ServerContentNegotiation
 
-class RoutingTest {
+class DeliveryHoursRouteTest {
     @Test
     fun `missing city slug returns bad request`() =
         testApplication {
