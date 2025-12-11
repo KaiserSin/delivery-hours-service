@@ -24,14 +24,9 @@ class CourierApiClient(
         }
 
     private suspend inline fun <reified T> executeRequest(crossinline block: suspend () -> HttpResponse): T =
-        try {
-            val response = block()
-            if (response.status.isSuccess()) {
-                response.body()
-            } else {
-                errorHandler.handleResponse(response)
-            }
-        } catch (t: Throwable) {
-            errorHandler.handleException(t)
-        }
+        runCatching { block() }
+            .fold(
+                onSuccess = { if (it.status.isSuccess()) it.body() else errorHandler.handleResponse(it) },
+                onFailure = { throw errorHandler.handleException(it) },
+            )
 }

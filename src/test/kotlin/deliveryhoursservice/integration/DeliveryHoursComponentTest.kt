@@ -40,7 +40,7 @@ class DeliveryHoursComponentTest {
                     val response = client.get("/delivery-hours?city_slug=helsinki&venue_id=123")
                     assertEquals(HttpStatusCode.OK, response.status)
                     val body = response.body<DeliveryHoursResponseDto>()
-                    assertEquals(expectedDeliveryHours, body.delivery_hours)
+                    assertEquals(expectedDeliveryHours, body.deliveryHours)
                 }
             }
         }
@@ -54,7 +54,7 @@ class DeliveryHoursComponentTest {
                         val response = client.get("/delivery-hours?city_slug=helsinki&venue_id=123")
                         assertEquals(HttpStatusCode.OK, response.status)
                         val dto = response.body<DeliveryHoursResponseDto>()
-                        assertEquals(expectedDeliveryHours, dto.delivery_hours)
+                        assertEquals(expectedDeliveryHours, dto.deliveryHours)
                     }
                 }
             }

@@ -10,7 +10,7 @@ class DeliveryHoursCalculatorTest {
         val venue = OpeningHoursDto(monday = slot(13, 0, 20, 0))
         val courier = OpeningHoursDto(monday = slot(14, 0, 21, 0))
         val response = calculateDeliveryHours(venue, courier)
-        assertEquals(expectWeek("Monday" to "14-20"), response.delivery_hours)
+        assertEquals(expectWeek("Monday" to "14-20"), response.deliveryHours)
     }
 
     @Test
@@ -18,7 +18,7 @@ class DeliveryHoursCalculatorTest {
         val venue = OpeningHoursDto(monday = slot(13, 0, 20, 0))
         val courier = OpeningHoursDto(monday = slot(8, 0, 23, 0))
         val response = calculateDeliveryHours(venue, courier)
-        assertEquals(expectWeek("Monday" to "13-20"), response.delivery_hours)
+        assertEquals(expectWeek("Monday" to "13-20"), response.deliveryHours)
     }
 
     @Test
@@ -26,7 +26,7 @@ class DeliveryHoursCalculatorTest {
         val venue = OpeningHoursDto(monday = slot(8, 0, 10, 0))
         val courier = OpeningHoursDto(monday = slot(12, 0, 15, 0))
         val response = calculateDeliveryHours(venue, courier)
-        assertEquals(CLOSED_WEEK, response.delivery_hours)
+        assertEquals(CLOSED_WEEK, response.deliveryHours)
     }
 
     @Test
@@ -34,7 +34,7 @@ class DeliveryHoursCalculatorTest {
         val venue = OpeningHoursDto(monday = slot(13, 0, 13, 45))
         val courier = OpeningHoursDto(monday = slot(13, 10, 13, 25))
         val response = calculateDeliveryHours(venue, courier)
-        assertEquals(CLOSED_WEEK, response.delivery_hours)
+        assertEquals(CLOSED_WEEK, response.deliveryHours)
     }
 
     @Test
@@ -48,7 +48,7 @@ class DeliveryHoursCalculatorTest {
                 monday = slot(7, 0, 13, 0) + slot(14, 0, 20, 0),
             )
         val response = calculateDeliveryHours(venue, courier)
-        assertEquals(expectWeek("Monday" to "08-12, 14:30-18"), response.delivery_hours)
+        assertEquals(expectWeek("Monday" to "08-12, 14:30-18"), response.deliveryHours)
     }
 
     @Test
@@ -56,7 +56,7 @@ class DeliveryHoursCalculatorTest {
         val venue = OpeningHoursDto(monday = slot(10, 0, 11, 0))
         val courier = OpeningHoursDto(monday = slot(10, 30, 11, 30))
         val response = calculateDeliveryHours(venue, courier)
-        assertEquals(expectWeek("Monday" to "10:30-11"), response.delivery_hours)
+        assertEquals(expectWeek("Monday" to "10:30-11"), response.deliveryHours)
     }
 
     @Test
@@ -66,7 +66,7 @@ class DeliveryHoursCalculatorTest {
         val response = calculateDeliveryHours(venue, courier)
         assertEquals(
             expectWeek("Monday" to "05-06", "Tuesday" to "06-08"),
-            response.delivery_hours,
+            response.deliveryHours,
         )
     }
 
@@ -83,7 +83,7 @@ class DeliveryHoursCalculatorTest {
                 monday = listOf(closeEntry(7)),
             )
         val response = calculateDeliveryHours(venue, courier)
-        assertEquals(expectWeek("Sunday" to "21-06"), response.delivery_hours)
+        assertEquals(expectWeek("Sunday" to "21-06"), response.deliveryHours)
     }
 
     @Test
@@ -91,6 +91,6 @@ class DeliveryHoursCalculatorTest {
         val venue = OpeningHoursDto(monday = slot(6, 18, 18, 41))
         val courier = OpeningHoursDto(monday = slot(9, 21, 21, 35))
         val response = calculateDeliveryHours(venue, courier)
-        assertEquals(expectWeek("Monday" to "09:21-18:41"), response.delivery_hours)
+        assertEquals(expectWeek("Monday" to "09:21-18:41"), response.deliveryHours)
     }
 }

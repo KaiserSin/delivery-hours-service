@@ -34,7 +34,7 @@ class DeliveryHoursApplicationServiceTest {
             }
             val service = DeliveryHoursApplicationService(gateway)
             val result = service.getDeliveryHours("helsinki", "123")
-            assertEquals(expectWeek("Monday" to "14-20"), result.delivery_hours)
+            assertEquals(expectWeek("Monday" to "14-20"), result.deliveryHours)
             coVerify(exactly = 1) { gateway.fetchVenueOpeningHours("123") }
             coVerify(exactly = 1) { gateway.fetchCourierDeliveryHours("helsinki") }
         }
