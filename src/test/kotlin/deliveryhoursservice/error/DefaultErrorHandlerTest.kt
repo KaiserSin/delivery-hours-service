@@ -57,31 +57,35 @@ class DefaultErrorHandlerTest {
 
     @Test
     fun `handleException maps network issues`() {
-        val error = assertFailsWith<ApiException> {
-            DefaultErrorHandler().handleException(UnresolvedAddressException())
-        }.error
+        val error =
+            assertFailsWith<ApiException> {
+                DefaultErrorHandler().handleException(UnresolvedAddressException())
+            }.error
         assertTrue(error is ApiError.Network)
     }
 
     @Test
     fun `handleException maps unknown throwable`() {
-        val error = assertFailsWith<ApiException> {
-            DefaultErrorHandler().handleException(IllegalStateException("oops"))
-        }.error
+        val error =
+            assertFailsWith<ApiException> {
+                DefaultErrorHandler().handleException(IllegalStateException("oops"))
+            }.error
         assertTrue(error is ApiError.Unknown)
         assertTrue(error.message.contains("oops"))
     }
 
-    private suspend fun mockResponse(status: HttpStatusCode, body: String = "body") =
-        HttpClient(
-            MockEngine {
-                respond(
-                    body,
-                    status,
-                    headersOf(HttpHeaders.ContentType, ContentType.Text.Plain.toString()),
-                )
-            },
-        ).get("http://example.com")
+    private suspend fun mockResponse(
+        status: HttpStatusCode,
+        body: String = "body",
+    ) = HttpClient(
+        MockEngine {
+            respond(
+                body,
+                status,
+                headersOf(HttpHeaders.ContentType, ContentType.Text.Plain.toString()),
+            )
+        },
+    ).get("http://example.com")
 
     private suspend inline fun <reified T : ApiError> assertError(
         handler: DefaultErrorHandler,
