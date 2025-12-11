@@ -1,9 +1,10 @@
 package deliveryhoursservice.services
 
-import deliveryhoursservice.client.DeliveryHoursExternalGateway
+import deliveryhoursservice.client.ExternalDataRepository
 import deliveryhoursservice.error.ApiError
 import deliveryhoursservice.error.ApiException
 import deliveryhoursservice.models.OpeningHoursDto
+import deliveryhoursservice.models.SecondsOfDay
 import deliveryhoursservice.models.TimeEntryDto
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -18,7 +19,7 @@ class DeliveryHoursApplicationServiceTest {
     @Test
     fun `fetches venues and couriers in parallel`() {
         runTest {
-            val gateway = mockk<DeliveryHoursExternalGateway>()
+            val gateway = mockk<ExternalDataRepository>()
             val barrier = CoroutineBarrier(2)
             val venueDto = OpeningHoursDto(monday = slot(13, 0, 20, 0))
             val courierDto = OpeningHoursDto(monday = slot(14, 0, 21, 0))
@@ -42,7 +43,7 @@ class DeliveryHoursApplicationServiceTest {
     @Test
     fun `propagates venue exception`() {
         runTest {
-            val gateway = mockk<DeliveryHoursExternalGateway>()
+            val gateway = mockk<ExternalDataRepository>()
             val service = DeliveryHoursApplicationService(gateway)
             val failure = ApiException(ApiError.BadRequest("bad venue request"))
 
@@ -62,7 +63,7 @@ class DeliveryHoursApplicationServiceTest {
     @Test
     fun `propagates courier exception`() {
         runTest {
-            val gateway = mockk<DeliveryHoursExternalGateway>()
+            val gateway = mockk<ExternalDataRepository>()
             val service = DeliveryHoursApplicationService(gateway)
             val failure = ApiException(ApiError.BadRequest("bad courier request"))
 
@@ -82,11 +83,11 @@ class DeliveryHoursApplicationServiceTest {
     @Test
     fun `propagates venue validation error`() {
         runTest {
-            val gateway = mockk<DeliveryHoursExternalGateway>()
+            val gateway = mockk<ExternalDataRepository>()
             val service = DeliveryHoursApplicationService(gateway)
             val invalidDto =
                 OpeningHoursDto(
-                    monday = listOf(TimeEntryDto(open = 0, close = 0)),
+                    monday = listOf(TimeEntryDto(open = SecondsOfDay(0), close = SecondsOfDay(0))),
                 )
 
             coEvery { gateway.fetchVenueOpeningHours(any()) } returns invalidDto
@@ -101,11 +102,11 @@ class DeliveryHoursApplicationServiceTest {
     @Test
     fun `propagates courier validation error`() {
         runTest {
-            val gateway = mockk<DeliveryHoursExternalGateway>()
+            val gateway = mockk<ExternalDataRepository>()
             val service = DeliveryHoursApplicationService(gateway)
             val invalidDto =
                 OpeningHoursDto(
-                    tuesday = listOf(TimeEntryDto(open = 0, close = 0)),
+                    tuesday = listOf(TimeEntryDto(open = SecondsOfDay(0), close = SecondsOfDay(0))),
                 )
             coEvery { gateway.fetchVenueOpeningHours(any()) } returns OpeningHoursDto()
             coEvery { gateway.fetchCourierDeliveryHours(any()) } returns invalidDto

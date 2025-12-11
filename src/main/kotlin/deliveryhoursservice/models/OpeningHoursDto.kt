@@ -6,8 +6,8 @@ import deliveryhoursservice.error.ApiException
 private const val DAY_SECONDS = 24 * 60 * 60L
 
 data class TimeEntryDto(
-    val open: Long = -1,
-    val close: Long = -1,
+    val open: SecondsOfDay? = null,
+    val close: SecondsOfDay? = null,
 )
 
 data class OpeningHoursDto(
@@ -40,14 +40,14 @@ fun OpeningHoursDto.validateOrThrow(): OpeningHoursDto {
 
     days.forEach { (dayName, entries) ->
         entries.forEachIndexed { index, entry ->
-            val hasOpen = entry.open != -1L
-            val hasClose = entry.close != -1L
+            val hasOpen = entry.open != null
+            val hasClose = entry.close != null
             if (hasOpen == hasClose) {
                 throw ApiException(
                     ApiError.Validation("[$dayName][$index]: exactly one of {open|close} must be set"),
                 )
             }
-            val value = if (hasOpen) entry.open else entry.close
+            val value = (entry.open ?: entry.close)!!.value
             if (value !in 0..DAY_SECONDS) {
                 throw ApiException(
                     ApiError.Validation("[$dayName][$index]: value $value is out of range 0..$DAY_SECONDS"),

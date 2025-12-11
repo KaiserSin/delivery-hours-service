@@ -16,27 +16,27 @@ class DeliveryHoursExternalGatewayTest {
     fun `fetchVenueOpeningHours delegates to venue client`() =
         runBlocking {
             val venueClient = mockk<VenueApiClient>()
-            val courierClient = mockk<CourierApiClient>()
-            val gateway = DeliveryHoursExternalGateway(venueClient, courierClient)
+            val courierApiClient = mockk<CourierApiClient>()
+            val gateway = ExternalDataRepository(venueClient, courierApiClient)
             val expected = OpeningHoursDto(monday = emptyList())
             coEvery { venueClient.fetchOpeningHours("123") } returns expected
             val result = gateway.fetchVenueOpeningHours("123")
             assertEquals(expected, result)
             coVerify(exactly = 1) { venueClient.fetchOpeningHours("123") }
-            coVerify(exactly = 0) { courierClient.fetchDeliveryHours(any()) }
+            coVerify(exactly = 0) { courierApiClient.fetchDeliveryHours(any()) }
         }
 
     @Test
     fun `fetchCourierDeliveryHours delegates to courier client`() =
         runBlocking {
             val venueClient = mockk<VenueApiClient>()
-            val courierClient = mockk<CourierApiClient>()
-            val gateway = DeliveryHoursExternalGateway(venueClient, courierClient)
+            val courierApiClient = mockk<CourierApiClient>()
+            val gateway = ExternalDataRepository(venueClient, courierApiClient)
             val expected = OpeningHoursDto(tuesday = emptyList())
-            coEvery { courierClient.fetchDeliveryHours("helsinki") } returns expected
+            coEvery { courierApiClient.fetchDeliveryHours("helsinki") } returns expected
             val result = gateway.fetchCourierDeliveryHours("helsinki")
             assertEquals(expected, result)
-            coVerify(exactly = 1) { courierClient.fetchDeliveryHours("helsinki") }
+            coVerify(exactly = 1) { courierApiClient.fetchDeliveryHours("helsinki") }
             coVerify(exactly = 0) { venueClient.fetchOpeningHours(any()) }
         }
 
@@ -44,8 +44,8 @@ class DeliveryHoursExternalGatewayTest {
     fun `fetchVenueOpeningHours propagates exceptions`() =
         runBlocking {
             val venueClient = mockk<VenueApiClient>()
-            val courierClient = mockk<CourierApiClient>()
-            val gateway = DeliveryHoursExternalGateway(venueClient, courierClient)
+            val courierApiClient = mockk<CourierApiClient>()
+            val gateway = ExternalDataRepository(venueClient, courierApiClient)
             val failure = ApiException(ApiError.Unknown("venue down"))
             coEvery { venueClient.fetchOpeningHours("123") } throws failure
             val thrown =
@@ -59,10 +59,10 @@ class DeliveryHoursExternalGatewayTest {
     fun `fetchCourierDeliveryHours propagates exceptions`() =
         runBlocking {
             val venueClient = mockk<VenueApiClient>()
-            val courierClient = mockk<CourierApiClient>()
-            val gateway = DeliveryHoursExternalGateway(venueClient, courierClient)
+            val courierApiClient = mockk<CourierApiClient>()
+            val gateway = ExternalDataRepository(venueClient, courierApiClient)
             val failure = ApiException(ApiError.Unknown("courier down"))
-            coEvery { courierClient.fetchDeliveryHours("helsinki") } throws failure
+            coEvery { courierApiClient.fetchDeliveryHours("helsinki") } throws failure
             val thrown =
                 assertFailsWith<ApiException> {
                     gateway.fetchCourierDeliveryHours("helsinki")

@@ -8,6 +8,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
+private fun secs(value: Long) = SecondsOfDay(value)
+
 class OpeningHoursDtoTest {
     @Test
     fun `accepts matching open and close`() {
@@ -15,13 +17,13 @@ class OpeningHoursDtoTest {
             OpeningHoursDto(
                 monday =
                     listOf(
-                        TimeEntryDto(open = 0),
-                        TimeEntryDto(close = 18L * 3600),
+                        TimeEntryDto(open = secs(0)),
+                        TimeEntryDto(close = secs(18L * 3600)),
                     ),
                 tuesday =
                     listOf(
-                        TimeEntryDto(open = 10L * 3600),
-                        TimeEntryDto(close = 22L * 3600),
+                        TimeEntryDto(open = secs(10L * 3600)),
+                        TimeEntryDto(close = secs(22L * 3600)),
                     ),
             )
         val result = dto.validateOrThrow()
@@ -32,8 +34,8 @@ class OpeningHoursDtoTest {
     fun `accepts overnight wrap`() {
         val dto =
             OpeningHoursDto(
-                monday = listOf(TimeEntryDto(open = 0)),
-                tuesday = listOf(TimeEntryDto(close = 22L * 3600)),
+                monday = listOf(TimeEntryDto(open = secs(0))),
+                tuesday = listOf(TimeEntryDto(close = secs(22L * 3600))),
             )
         val result = dto.validateOrThrow()
         assertSame(dto, result)
@@ -43,7 +45,7 @@ class OpeningHoursDtoTest {
     fun `rejects open and close together`() {
         val dto =
             OpeningHoursDto(
-                monday = listOf(TimeEntryDto(open = 0, close = 22L * 3600)),
+                monday = listOf(TimeEntryDto(open = secs(0), close = secs(22L * 3600))),
             )
         val error = assertFailsWith<ApiException> { dto.validateOrThrow() }
         assertTrue(error.error is ApiError.Validation)
@@ -73,7 +75,7 @@ class OpeningHoursDtoTest {
     fun `rejects open out of range`() {
         val dto =
             OpeningHoursDto(
-                monday = listOf(TimeEntryDto(open = 0), TimeEntryDto(close = 90_000)),
+                monday = listOf(TimeEntryDto(open = secs(0)), TimeEntryDto(close = secs(90_000))),
             )
         val error = assertFailsWith<ApiException> { dto.validateOrThrow() }
         assertTrue(error.error is ApiError.Validation)
@@ -87,7 +89,7 @@ class OpeningHoursDtoTest {
     fun `rejects close out of range`() {
         val dto =
             OpeningHoursDto(
-                monday = listOf(TimeEntryDto(close = -2)),
+                monday = listOf(TimeEntryDto(close = secs(-2))),
             )
         val error = assertFailsWith<ApiException> { dto.validateOrThrow() }
         assertTrue(error.error is ApiError.Validation)
@@ -101,7 +103,7 @@ class OpeningHoursDtoTest {
     fun `rejects leading close`() {
         val dto =
             OpeningHoursDto(
-                monday = listOf(TimeEntryDto(close = 600)),
+                monday = listOf(TimeEntryDto(close = secs(600))),
             )
 
         val error = assertFailsWith<ApiException> { dto.validateOrThrow() }
@@ -119,8 +121,8 @@ class OpeningHoursDtoTest {
             OpeningHoursDto(
                 monday =
                     listOf(
-                        TimeEntryDto(open = 0),
-                        TimeEntryDto(open = 1_800),
+                        TimeEntryDto(open = secs(0)),
+                        TimeEntryDto(open = secs(1_800)),
                     ),
             )
         val error = assertFailsWith<ApiException> { dto.validateOrThrow() }
@@ -137,10 +139,10 @@ class OpeningHoursDtoTest {
             OpeningHoursDto(
                 monday =
                     listOf(
-                        TimeEntryDto(close = 600),
-                        TimeEntryDto(open = 3_600),
-                        TimeEntryDto(close = 7_200),
-                        TimeEntryDto(close = 10_800),
+                        TimeEntryDto(close = secs(600)),
+                        TimeEntryDto(open = secs(3_600)),
+                        TimeEntryDto(close = secs(7_200)),
+                        TimeEntryDto(close = secs(10_800)),
                     ),
             )
         val error = assertFailsWith<ApiException> { dto.validateOrThrow() }
@@ -155,7 +157,7 @@ class OpeningHoursDtoTest {
     fun `rejects trailing open`() {
         val dto =
             OpeningHoursDto(
-                monday = listOf(TimeEntryDto(open = 1_000)),
+                monday = listOf(TimeEntryDto(open = secs(1_000))),
             )
         val error = assertFailsWith<ApiException> { dto.validateOrThrow() }
         assertTrue(error.error is ApiError.Validation)
@@ -171,17 +173,17 @@ class OpeningHoursDtoTest {
             OpeningHoursDto(
                 monday =
                     listOf(
-                        TimeEntryDto(open = 0),
-                        TimeEntryDto(close = 86_399),
+                        TimeEntryDto(open = secs(0)),
+                        TimeEntryDto(close = secs(86_399)),
                     ),
             )
         assertSame(dto, dto.validateOrThrow())
     }
 
     @Test
-    fun `time entry defaults to sentinel`() {
+    fun `time entry defaults to nulls`() {
         val entry = TimeEntryDto()
-        assertEquals(-1, entry.open)
-        assertEquals(-1, entry.close)
+        assertEquals(null, entry.open)
+        assertEquals(null, entry.close)
     }
 }

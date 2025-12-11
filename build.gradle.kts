@@ -35,6 +35,7 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages")
     implementation("io.ktor:ktor-server-cio:3.1.1")
 
+
     testImplementation(platform("org.junit:junit-bom:5.12.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation(kotlin("test"))
@@ -64,8 +65,8 @@ tasks {
     run.invoke {
         doFirst {
             val wiremockPort = dockerCompose.servicesInfos["external-services-mock"]?.port ?: 8080
-            environment("VENUE_SERVICE_URL", "http://localhost:$wiremockPort/venue-service")
-            environment("COURIER_SERVICE_URL", "http://localhost:$wiremockPort/courier-service")
+            environment("VENUE_SERVICE_URL", "http://localhost:$wiremockPort/venue-service/venues")
+            environment("COURIER_SERVICE_URL", "http://localhost:$wiremockPort/courier-service/delivery-hours")
         }
     }
 

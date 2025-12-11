@@ -1,13 +1,13 @@
 package deliveryhoursservice.services
 
-import deliveryhoursservice.client.DeliveryHoursExternalGateway
+import deliveryhoursservice.client.ExternalDataRepository
 import deliveryhoursservice.models.DeliveryHoursResponseDto
 import deliveryhoursservice.models.validateOrThrow
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
 class DeliveryHoursApplicationService(
-    private val gateway: DeliveryHoursExternalGateway,
+    private val gateway: ExternalDataRepository,
 ) {
     suspend fun getDeliveryHours(
         citySlug: String,

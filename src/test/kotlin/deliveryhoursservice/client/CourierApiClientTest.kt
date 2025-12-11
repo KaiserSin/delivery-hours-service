@@ -51,8 +51,8 @@ class CourierApiClientTest {
                     baseUrl = "http://example.com/courier-service/delivery-hours",
                 )
             val dto = client.fetchDeliveryHours("helsinki")
-            assertEquals(0, dto.monday[0].open)
-            assertEquals(3600, dto.monday[1].close)
+            assertEquals(0, dto.monday[0].open?.value)
+            assertEquals(3600, dto.monday[1].close?.value)
         }
 
     @Test

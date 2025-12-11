@@ -1,5 +1,6 @@
 package deliveryhoursservice.services
 
+import deliveryhoursservice.models.SecondsOfDay
 import deliveryhoursservice.models.TimeEntryDto
 
 internal val CLOSED_WEEK: Map<String, String> =
@@ -35,4 +36,4 @@ internal fun closeEntry(
 private fun seconds(
     hour: Int,
     minute: Int = 0,
-): Long = ((hour * 60) + minute) * 60L
+): SecondsOfDay = SecondsOfDay(((hour * 60) + minute) * 60L)

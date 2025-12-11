@@ -1,7 +1,10 @@
 package deliveryhoursservice.config
 
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.cio.CIOEngineConfig
 import io.ktor.client.engine.cio.endpoint
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpRequestRetry
@@ -16,8 +19,13 @@ import io.ktor.serialization.jackson.jackson
 import kotlin.random.Random
 
 object HttpClientProvider {
-    val client =
-        HttpClient(CIO) {
+    val client = buildClient()
+
+    internal fun buildClient(
+        engineFactory: HttpClientEngineFactory<*> = CIO,
+        engineConfig: HttpClientEngineConfig.() -> Unit = { configureEngineDefaults() },
+    ): HttpClient =
+        HttpClient(engineFactory) {
             install(ContentNegotiation) { jackson() }
 
             install(DefaultRequest) {
@@ -59,13 +67,17 @@ object HttpClientProvider {
                 }
             }
 
-            engine {
-                maxConnectionsCount = 1000
-                endpoint {
-                    connectAttempts = 1
-                    keepAliveTime = 5_000
-                    pipelineMaxSize = 20
-                }
+            engine(engineConfig)
+        }
+
+    private fun HttpClientEngineConfig.configureEngineDefaults() {
+        if (this is CIOEngineConfig) {
+            maxConnectionsCount = 1000
+            endpoint {
+                connectAttempts = 1
+                keepAliveTime = 5_000
+                pipelineMaxSize = 20
             }
         }
+    }
 }
