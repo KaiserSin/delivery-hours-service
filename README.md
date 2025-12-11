@@ -132,6 +132,20 @@ A few words about my solution.
 | `05:50–06:10` | ~~`05:50–06:00`~~; ~~`06:00–06:10`~~                     | Total = 20 min < 30 and no longer span → **discarded**                |
 | `05:45–06:15` | `05:45–06:00` (day D); `06:00–06:15` (day D+1)           | Paired total = 30 min → **both kept**                                 |
 
+
+### Future Improvements
+
+While the current implementation fulfills the requirements and is robust enough for the specified task, here is how I would evolve the service for a high-load production environment:
+
+* **Caching (Redis):**
+  The delivery and opening hours are relatively static data. Fetching them from upstream services on every request is inefficient. I would introduce a caching layer (e.g., **Redis**) with a reasonable TTL (Time-To-Live). This would significantly reduce latency and the load on Venue/Courier services.
+
+* **Communication Protocol (gRPC):**
+  Currently, the service communicates via HTTP/JSON. For internal microservice communication, I would migrate to **gRPC (Protobuf)**. It offers strict contract definitions, better performance (binary format, smaller payloads), and lower latency compared to REST.
+
+* **API Documentation:**
+  Integrate **OpenAPI/Swagger** to automatically generate documentation for the `GET /delivery-hours` endpoint, making it easier for consumers to integrate with the service.
+
 ### Final note
 
 Everything else works as intended: all commands, validations, and edge-case handling are implemented as specified. Thank you for the opportunity to complete this assignment and for the chance to be considered.
