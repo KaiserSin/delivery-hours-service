@@ -23,9 +23,7 @@ fun main() {
     ).start(wait = true)
 }
 
-fun Application.module(
-    httpClient: HttpClient = HttpClientProvider.client,
-) {
+fun Application.module(httpClient: HttpClient = HttpClientProvider.client) {
     val venueClient = VenueApiClient(httpClient)
     val courierApiClient = CourierApiClient(httpClient)
     val gateway = ExternalDataRepository(venueClient, courierApiClient)

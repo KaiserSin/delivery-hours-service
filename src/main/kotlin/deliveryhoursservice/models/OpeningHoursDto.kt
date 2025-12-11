@@ -53,13 +53,20 @@ private data class SequenceState(
     val pendingOpen: Position? = null,
     val leadingClose: Position? = null,
 ) {
-    fun consume(day: String, index: Int, kind: EntryKind): SequenceState =
+    fun consume(
+        day: String,
+        index: Int,
+        kind: EntryKind,
+    ): SequenceState =
         when (kind) {
             EntryKind.OPEN -> handleOpen(day, index)
             EntryKind.CLOSE -> handleClose(day, index)
         }
 
-    private fun handleOpen(day: String, index: Int): SequenceState {
+    private fun handleOpen(
+        day: String,
+        index: Int,
+    ): SequenceState {
         if (expectingClose) {
             throw ApiException(ApiError.Validation("[$day][$index]: expected close entry, got open"))
         }
@@ -69,7 +76,10 @@ private data class SequenceState(
         )
     }
 
-    private fun handleClose(day: String, index: Int): SequenceState {
+    private fun handleClose(
+        day: String,
+        index: Int,
+    ): SequenceState {
         if (!expectingClose) {
             if (leadingClose != null) {
                 throw ApiException(ApiError.Validation("[$day][$index]: expected open entry, got close"))
@@ -102,7 +112,11 @@ private data class SequenceState(
     }
 }
 
-private fun normalizeEntry(dayName: String, index: Int, entry: TimeEntryDto): EntryKind {
+private fun normalizeEntry(
+    dayName: String,
+    index: Int,
+    entry: TimeEntryDto,
+): EntryKind {
     val hasOpen = entry.open != null
     val hasClose = entry.close != null
     if (hasOpen == hasClose) {

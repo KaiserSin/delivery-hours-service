@@ -131,8 +131,7 @@ private fun rangesToDtoCutAt6am(ranges: List<Range>): DeliveryHoursResponseDto {
     return DeliveryHoursResponseDto(final)
 }
 
-private fun displayDayIndex(t: Duration): Int =
-    (((t.minus(DAY_BOUNDARY_AT_6_AM)).floorDiv(DAY_LENGTH).toInt() % 7 + 7) % 7)
+private fun displayDayIndex(t: Duration): Int = (((t.minus(DAY_BOUNDARY_AT_6_AM)).floorDiv(DAY_LENGTH).toInt() % 7 + 7) % 7)
 
 private fun nextCut6amAfter(t: Duration): Duration {
     val dayStartAt6 =
